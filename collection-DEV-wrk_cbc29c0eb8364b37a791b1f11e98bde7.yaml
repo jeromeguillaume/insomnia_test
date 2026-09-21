@@ -1,0 +1,20 @@
+type: environment.insomnia.rest/5.0
+schema_version: "5.1"
+name: collection-DEV
+meta:
+  id: wrk_cbc29c0eb8364b37a791b1f11e98bde7
+  created: 1789997420164
+  modified: 1789997420164
+  description: ""
+environments:
+  name: collection-DEV
+  meta:
+    id: env_6b0ee326241e45fd8e63a231d8b6a058
+    created: 1789997420165
+    modified: 1789998498517
+    isPrivate: false
+  data:
+    host: sso.apim.eu:8443
+    client_id: client1
+    client_secret: tf8T1dBFFNcYU4BQqAyyed5xMEWECyny
+    ACCESS_TOKEN: ""

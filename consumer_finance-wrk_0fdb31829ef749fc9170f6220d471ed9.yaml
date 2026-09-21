@@ -1,0 +1,577 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Consumer Finance
+meta:
+  id: wrk_0fdb31829ef749fc9170f6220d471ed9
+  created: 1789997292212
+  modified: 1789998369080
+  description: ""
+collection:
+  - name: Consumer Finance
+    meta:
+      id: fld_23cb19912dc84dd7a2def05b34334429
+      created: 1789997292213
+      modified: 1789998498518
+      sortKey: -1789997289533
+      description: ""
+    children:
+      - name: Document
+        meta:
+          id: fld_2d04198a0079460aa92cd5c633779e79
+          created: 1789997292213
+          modified: 1789998498518
+          sortKey: -1789997289532
+          description: ""
+        children:
+          - url: https://kong-gateway.com/IDTokenGenerator/V1/idTokens
+            name: Step 3. Get id-token using idTokenGenerator
+            meta:
+              id: req_485a17f5a6e54f439851367701b9bf21
+              created: 1789997292214
+              modified: 1789997292214
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289528
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                	 "subject": "92808387475",
+                	 "tokenDuration":"3000"
+                	 
+                }
+            headers:
+              - name: Authorization
+                value: Bearer {{_['POD-AAT']}}
+              - name: Content-Type
+                value: application/json
+            scripts:
+              afterResponse: "insomnia.test(\"Application access token creation\", () => {\r
+
+                \ \r
+
+                \  const responseJson = insomnia.response.json();\r
+
+                \  insomnia.expect(responseJson.id).not.null;\r
+
+                \  console.log(responseJson.token);\r
+
+                \  insomnia.environment.set(\"POD-ID-TOKEN\",
+                responseJson.token);\r
+
+                \r
+
+                });"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://{{_['host']}}/realms/Jerome/protocol/openid-connect/token
+            name: Step 1. Get Access token
+            meta:
+              id: req_8337410f3a9c482585da6d134980a888
+              created: 1789997292214
+              modified: 1789998305410
+              isPrivate: false
+              description: Obtenir un token de type application pour appeler les apis sans
+                authentification
+              sortKey: -1789997289531
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: grant_type
+                  value: client_credentials
+                  disabled: false
+                - name: scope
+                  value: openid
+                  disabled: false
+            headers:
+              - name: Content-Type
+                value: application/x-www-form-urlencoded
+            scripts:
+              preRequest: >+
+                
+                insomnia.request.addHeader({key: 'X-Header-Divalto', value:
+                'header_value' });
+
+              afterResponse: >-
+                
+                insomnia.test('Check if status is 200', () => {
+                    insomnia.expect(insomnia.response.code).to.eql(200);
+                });
+
+
+
+
+                insomnia.test("Application access token creation", () => {
+                 
+                  const responseJson = insomnia.response.json();
+                  insomnia.expect(responseJson.id_token).to.be.a('string');
+                  insomnia.expect(responseJson.access_token);
+                  console.log(responseJson.access_token);
+                  insomnia.environment.set("ACCESS_TOKEN", responseJson.access_token);
+
+                });
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://{{_['host']}}/auth/realms/Jerome/protocol/openid-connect/token
+            name: Step 1b. Get Access token (PM Legacy)
+            meta:
+              id: req_a85a2da0c1a347d29928e2703adbb7fb
+              created: 1789997292214
+              modified: 1789997292214
+              isPrivate: false
+              description: Obtenir un token de type application pour appeler les apis sans
+                authentification
+              sortKey: -1789997289530
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: grant_type
+                  value: client_credentials
+                  disabled: false
+                - name: scope
+                  value: openid
+                  disabled: false
+            headers:
+              - name: Content-Type
+                value: application/x-www-form-urlencoded
+            scripts:
+              preRequest: insomnia.execution.setNextRequest("Step 1. Get Access token")
+              afterResponse: "postman.test(\"Application access token creation\", () => {\r
+
+                \ \r
+
+                \  const responseJson = insomnia.response.json();\r
+
+                \  postman.expect(responseJson.id_token).to.be.a('string');\r
+
+                \  postman.expect(responseJson.access_token);\r
+
+                \  console.log(responseJson.access_token);\r
+
+                \  postman.environment.set(\"POD-AAT\",
+                responseJson.access_token);\r
+
+                });"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://{{_['host']}}/auth/realms/Jerome/protocol/openid-connect/token/introspect
+            name: Step 2. Validate token
+            meta:
+              id: req_b4f9a1151af0497190e4f2c61bd0c7fc
+              created: 1789997292214
+              modified: 1789997292214
+              isPrivate: false
+              description: Obtenir un token de type application pour appeler les apis sans
+                authentification
+              sortKey: -1789997289529
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: token_type_hint
+                  value: access_token
+                  disabled: false
+                - name: token
+                  value: "{{_['POD-AAT']}}"
+                  disabled: false
+            headers:
+              - name: Content-Type
+                value: application/x-www-form-urlencoded
+            scripts:
+              afterResponse: "insomnia.test(\"Validate Token\", () => {\r
+
+                \ \r
+
+                \  const responseJson = insomnia.response.json();\r
+
+                \  \r
+
+                });"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://kong-gateway.com/token
+            name: Step 4. Get User Access Token (UAT)
+            meta:
+              id: req_49344e9518b14d5d945885dcc39d6d01
+              created: 1789997292215
+              modified: 1789997292215
+              isPrivate: false
+              description: Obtenir un token de type application pour appeler les apis sans
+                authentification
+              sortKey: -1789997289527
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: grant_type
+                  value: urn:ietf:params:oauth:grant-type:jwt-bearer
+                  disabled: false
+                - name: assertion
+                  value: "{{_['POD-ID-TOKEN']}}"
+                  disabled: false
+                - name: scope
+                  value: openid
+                  disabled: false
+            headers:
+              - name: Content-Type
+                value: application/x-www-form-urlencoded
+            scripts:
+              afterResponse: "insomnia.test(\"Application access token creation\", () => {\r
+
+                \ \r
+
+                \  const responseJson = insomnia.response.json();\r
+
+                \  insomnia.expect(responseJson.access_token).not.null;\r
+
+                \  console.log(responseJson.access_token);\r
+
+                \  insomnia.environment.set(\"POD-UAT\",
+                responseJson.access_token);\r
+
+                \r
+
+                });"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://kong-gateway.com/HAPPY_DEMO/V1/jwt/securedAssertionToken
+            name: Step 4.5. Get Assertion Token related to UAT
+            meta:
+              id: req_813ccc29b96f4897822fcaefa883d0b4
+              created: 1789997292215
+              modified: 1789997292215
+              isPrivate: false
+              description: >-
+                A utiliser uniquement pour les tests en local. 
+
+                Permet de simuler le assertion token envoy� par l'APIM vers
+                l'api dans le header X-JWT-Assertion.
+              sortKey: -1789997289526
+            method: GET
+            headers:
+              - name: Authorization
+                value: Bearer {{_['POD-UAT']}}
+              - name: correlationId
+                value: "{% faker 'randomUUID' %}"
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{_['POD-UAT']}}"
+              prefix: ""
+            scripts:
+              afterResponse: "insomnia.test(\"Validate Assertion related to AAT\", function ()
+                {\r
+
+                \   const insomnia.response.text()=insomnia.response.text();\r
+
+                \   const paylod=insomnia.response.text().split('.')[1];\r
+
+                \   const assertionBrut= JSON.parse(atob(paylod));\r
+
+                \   const assertion=JSON.stringify(assertionBrut);\r
+
+                \   var find=\"http:\\/\\/wso2.org\\/claims\\/\";\r
+
+                \   var re = new RegExp(find, 'g');\r
+
+                \   const jsonAssertion= JSON.parse(assertion.replace(re,
+                ''));\r
+
+                \   console.log(assertionBrut); \r
+
+                \   console.log(jsonAssertion);\r
+
+                \   insomnia.environment.set(\"UATJsonAssertion\",jsonAssertion\
+                );\r
+
+                \   insomnia.environment.set(\"UATAssertion\",insomnia.response\
+                .text());\r
+
+                });\r
+
+                \r
+
+                insomnia.test(\"Usertype claim  of AAT Assertion must equal to
+                APPLICATION\", function () {\r
+
+                \     insomnia.expect(insomnia.environment.get(\"UATJsonAsserti\
+                on\").usertype).equal(\"APPLICATION\");\r
+
+                });\r
+
+                \r
+
+                insomnia.test(\"sub claim in Assertion must be defined\",
+                function () {\r
+
+                \     insomnia.expect(insomnia.environment.get(\"UATJsonAsserti\
+                on\").sub).not.eql(undefined);\r
+
+                });\r
+
+                \r
+
+                \r
+
+                \r\n"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://kong-gateway.com/supportingDocuments/v1/contracts/:id/supportingDocuments/:documentId/upload
+            name: Step 5. Call upload and OCR of a supporting document - multiple files
+            meta:
+              id: req_e4330173413346a6bd15741349bfeb8a
+              created: 1789997292215
+              modified: 1789997292215
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289525
+            method: POST
+            body:
+              mimeType: multipart/form-data
+              params:
+                - name: file
+                  disabled: false
+                  fileName: /home/devops/decoupage.pdf
+                  type: file
+            parameters:
+              - name: withOcr
+                value: "true"
+                disabled: false
+              - name: isValidated
+                value: "true"
+                disabled: true
+            headers:
+              - name: context-partnerid
+                value: web_sofinco
+                description: (Required) partnerId
+              - name: context-applicationid
+                value: upload-se
+                description: (Required) applicationId
+              - name: Content-Type
+                value: multipart/form-data
+              - name: Authorization
+                value: Bearer {{_['POD-UAT']}}
+            authentication:
+              type: bearer
+              disabled: false
+              token: "{{_['POD-UAT']}}"
+              prefix: ""
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+            pathParameters:
+              - name: id
+                value: "81643845803"
+              - name: documentId
+                value: P03
+          - url: https://kong-gateway.com/intranet-SupportingDocuments/contracts/:id/supportingDocuments/:documentId/pages
+            name: Step 6. Delete a supporting document files (delete all pages of the
+              supporting document)
+            meta:
+              id: req_18247628afbe49218f9b2cb65c7147c5
+              created: 1789997292216
+              modified: 1789997292216
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289524
+            method: DELETE
+            headers:
+              - name: context-partnerid
+                value: web_sofinco
+                description: (Required) partnerId
+              - name: context-applicationid
+                value: upload-se
+                description: (Required) applicationId
+              - name: x-jwt-assertion
+                value: "{{UATAssertion}}"
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+            pathParameters:
+              - name: id
+                value: "81643845803"
+              - name: documentId
+                value: P03
+        authentication:
+          type: basic
+          username: "{{ _.client_id }}"
+          password: "{{ _.client_secret }}"
+          disabled: false
+      - name: Token
+        meta:
+          id: fld_85e7618d79204d84b311dab4194e9939
+          created: 1789997292216
+          modified: 1789997292216
+          sortKey: -1789997289523
+          description: ""
+        children:
+          - url: https://kong-gateway.com/connect_insign/v1/token/partner
+            name: Kong - Generate token
+            meta:
+              id: req_52388707765c42d6bf54c8a90cc3fbc4
+              created: 1789997292216
+              modified: 1789997292216
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289522
+            method: POST
+            body:
+              mimeType: application/x-www-form-urlencoded
+              params:
+                - name: grant_type
+                  value: client_credentials
+                  disabled: false
+                - name: scope
+                  value: read
+                  disabled: false
+            headers:
+              - name: Content-Type
+                value: application/x-www-form-urlencoded
+            authentication:
+              type: basic
+              username: C445059C625AEF58
+              password: 6DE8327C54789FF81127FDB18C9436ECB553E8AEBCFA053D6553BF86B7998BFD
+              disabled: false
+            scripts:
+              afterResponse: >-
+                insomnia.test("Get an access token", function(){
+                    var json = insomnia.response.json();
+                    insomnia.response.to.not.be.error;
+                    insomnia.response.to.be.withBody;
+                    insomnia.response.to.be.json;
+                    insomnia.expect(json['access_token']).to.be.a('string');
+                    insomnia.environment.set("ACCESS_TOKEN", json['access_token']);
+                })
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://kong-gateway.com/meetings/1
+            name: Kong - Calendar
+            meta:
+              id: req_f42d0d61b6524cc3b2ca135fc7016159
+              created: 1789997292216
+              modified: 1789997292216
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289521
+            method: GET
+            authentication:
+              type: bearer
+              disabled: false
+              token: T7S20wdJzi9DO-JZFTMK74_u4cNsT6RlhHGniS_lgmoSPVdjyr19uRJlMDGaFBXp55IJEgpFef_jKVH5B1JABOfaw-sw0HCtDRHXHqdbw0YZTYU3twWhR-z-xJuRkEh8qSaPTisTIDy-3lksKIi1VnkxHWDrdZWbV2oDlcZwu0s
+              prefix: ""
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: https://kong-gateway.com/psd2/v1/Accounts
+            name: Kong - PSD2
+            meta:
+              id: req_6d6f9bd85ae544839305c9ec2a9cd27d
+              created: 1789997292217
+              modified: 1789997292217
+              isPrivate: false
+              description: ""
+              sortKey: -1789997289520
+            method: GET
+            parameters:
+              - name: page
+                value: "1"
+                disabled: false
+            headers:
+              - name: X-Client-Certificate
+                value: MIIFkTCCA3mgAwIBAgIJAIqrqaSm4afRMA0GCSqGSIb3DQEBCwUAMF8xCzAJBgNVBAYTAkZSMQswCQYDVQQIDAJGUjEOMAwGA1UEBwwFUGFyaXMxGTAXBgNVBAoMEFBTREdCLUZDQS05MDAwMDgxGDAWBgNVBAMMD3RwcC5leGFtcGxlLmNvbTAeFw0xOTA0MTYwOTU5MTdaFw0yOTA0MTMwOTU5MTdaMF8xCzAJBgNVBAYTAkZSMQswCQYDVQQIDAJGUjEOMAwGA1UEBwwFUGFyaXMxGTAXBgNVBAoMEFBTREdCLUZDQS05MDAwMDgxGDAWBgNVBAMMD3RwcC5leGFtcGxlLmNvbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKhRbL2Imn79P5U+ssh6iVj5cy6Bvw9dd1PbYWPA6ye+MlNzsyeaGAdFBubi2XXMk7VLs3a2CMYymS+8orkJPnTMY5MP9qJVQ3ZZbZMVz+cvbtfmNFlU+z8weylXNYNJ2MaqLfOHgoqsRLO9VCwZWAQMWM6xbiAGfm4nR8YdIh3cg8o7cDqCexO50cFXm5XhlQo4pDWsYHX5DrBa5cfhSSr5KZs8/7XU/g4f64ZS8MGi3FQTBhj8GI6Q++jxPWzA5vAIoBWM8EOGZGOE1KqbJWGzgjy66uaEQUSPNFpBOOrMgiy8M/VELEYkbObw+WwQRyFOqP2FEjWjm9m+i8xxIEj9Lp7yzdni8RbeA4dgKP3ctDqSWGNw/7mNgotrZGx//cpzj8RI/YKkp/kRp+RpJ9Zs5tWRvbLSKy8qMPZMqlqyZ/t7o/obZiTf3ApI4shBH28B4Vr3EIDjd08PrldhoQqlMSDtKJcZCfk/XLZYTTHjuNIH5Nn9vEBCFKXDVdHsi3IPsoLdGI9jFelIa9DxOTX8iMYLmDEUC+7CGIWJCJoJX2pQKDFptV2Ju5VhE/fBKW7iJ0wVHRExAQ82n+SebdeHSZZfSd5U9ZoROCzKcZl822ez0NkEoN3McRy8fsXcfZ+hmC+6Qhd3AuIVZ3lOLGZpbfClfI1SKBvqf8IaPZ9HAgMBAAGjUDBOMB0GA1UdDgQWBBR24Lt9rdrzPGIjYSBodgcQwBsTQTAfBgNVHSMEGDAWgBR24Lt9rdrzPGIjYSBodgcQwBsTQTAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4ICAQBR2PAXOwbZ7DqXrh6tKbJsZeBdI6LUb7HFsX2QYK4o1Ch12XjQWJInnghaiAd0BANCe0z5tIFZUaxxnquyc9LzlCSFIHsjn9OEW8eLgvY37dL2HirbgQ/UKw7c/WpK/gZIRMPQEPwdcJBoDqPfT3TjTEg1QdOMN2z4gyeLViiUPjm68HEr1B8hHPz8yjLBJVU9UvQF2vDjbaZqaLuE3fiCAxgzsG/nzh7GqZ15+ef10d+J+JnY+dU3aMrtiyGSBFqpsLfj8aH2Q+Iy5Lzis2YK3kDKO3r54AlxtGBB/8J29FPeKwfsXtGfLzT+eAvJRk+Xw1WoNLF9eax/2Vf1RZIylGscpKWsF9hFjJl7vtAeI6AIwPKmvkzcpXxkQeY+lVMG2Bt+HMJSXWxr/0hVSbjnRKBpCUiWa4/eSwMxoEqjg5zlg6s/q08LWOBfXV/+w5iTj+rC5tyaqoqIdra/Gh2AyYPLqyRNDDuacEcqtEVOGXGjkciLuGzSu4QtVz/5s1Has8fn4tGoUKWdwNsfgke4sbz3+504DqhhG1Tu/8dowQsmYoxETQHaWWtBwFtKwWXkOEOrN0KrLa4VSNvweVv0VXeCVy+vakx/2aiWy2ZBf15TfSGd3NKyMh6M73SYCaHi23b5MW6cNmUC46l9hhGd9OFxT/FjVmRweIM0UU08mA==
+              - name: Signature
+                value: keyId="https://kyriba.app.com/myQsealCertificate_612",algorithm="rsa-sha256",
+                  headers="(request-target) host content-type x-request-id
+                  digest",signature="eHSf6FUn4A7U0tobFfRZPkKQsPYoIg6m/MamkLgyRsI/gp6MEsJ6tbuLHQUHvyrOBFouetQEv3kz5PH0O9GQk8srPLC8WHlEHMl+NbRMihZETI5EqFceDx0ijM+PvnAXvKfEFMwuBA08SN+1kutnbP2TNobiBmnzIKTQDh2dIXAQpb1yCARwr2kaSSjTx578pKbx1xfa3aKboaBK8KWs8TwH1UdGR9T659O4FjyqI6MDSY+D1N+tgOqNZ4NgHLaUi3U4QzW4z8ynwqvVB0zIRGfTgUQEoMubyLLtdHMV5dPC4rL4QP4EkT+agmntvYO7x/5kHsSM8YnzhrDhID/pzQ=="
+              - name: Digest
+                value: SHA-256=3E80B3778B3B03766E7BE993131C0AF2AD05630C5D96FB7FA132D05B77336E04
+              - name: X-Request-Id
+                value: fdh5df154
+            authentication:
+              type: bearer
+              disabled: false
+              token: T7S20wdJzi9DO-JZFTMK74_u4cNsT6RlhHGniS_lgmoSPVdjyr19uRJlMDGaFBXpNMZ1a9pGqjDPyrIIQdo2iAG5YwKEvgwnho6AcqVvtuUn3P2hETswdpCD4ucvsV5edj7np7qbJTLWZuzMwC2fRQRjiFcFytctXDQY2l1XHNc
+              prefix: ""
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_6a1a68d1af0167c50582041b30c6edb2f93dfae4
+    created: 1789997292263
+    modified: 1789998498515
+environments:
+  name: Base Environment
+  meta:
+    id: env_6a1a68d1af0167c50582041b30c6edb2f93dfae4
+    created: 1789997292217
+    modified: 1789998498516
+    isPrivate: false
+  data:
+    ACCESS_TOKEN: eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJxOEVFR3YweE9FQkt3eFNJYVZDNGpHTWxVcF8yWURhS1pfMVdZNHV3b2lRIn0.eyJleHAiOjE3ODk5OTkyOTIsImlhdCI6MTc4OTk5NzQ5MiwianRpIjoidHJydGNjOmZjYmY5NTFlLTcyNzctY2Q0My0zNmRhLTI0ZjY4MDYwZjFmYSIsImlzcyI6Imh0dHBzOi8vc3NvLmFwaW0uZXUvcmVhbG1zL0plcm9tZSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiIzNmZhYzkxZC04MjA0LTQxMjUtOTEwMy00NDYxMDAyMGU0ODMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJjbGllbnQxIiwiYWNyIjoiMSIsInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsImRlZmF1bHQtcm9sZXMtamVyb21lIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJjbGllbnQxIjp7InJvbGVzIjpbInVtYV9wcm90ZWN0aW9uIl19LCJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIGJyb256ZSBvcGVuYWkiLCJjbGllbnRJZCI6ImNsaWVudDEiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImNsaWVudEhvc3QiOiI5MS4yMDAuMjA2Ljg0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoic2VydmljZS1hY2NvdW50LWNsaWVudDEiLCJjbGllbnRBZGRyZXNzIjoiOTEuMjAwLjIwNi44NCJ9.oUk91N4JMuMbR5vc08WrMkVlAw1p4YF78bywXglhsYrN3vU6JoRp751QFzAwHaJA-zEwL01HmVci0EvCub1sJVYU9YeIRfQuZHTMNgSbQWItw1T46kVe5o7sDEuQfQGvCSBSgB-nXiIFcWBEDJA9oNMbHoRZliNnc49eGDSvRVj1uGTlTmRRq_x233kSMhjSS5H2H4bIpFGJa6qyJrFQNjmpVIPJqJi_HJLOqmAgtmi1exhNZ8sDfrNReBbzqK2sS6z_1CY6u4c-KV2-aiuVvMN63FNF96u4IlmvcgKkhJjSy7kjT8-sna1jCCxuVddLBLUZIA97SNVnOvJ3CQdH5Q
